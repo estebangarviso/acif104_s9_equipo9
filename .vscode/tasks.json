@@ -1,0 +1,53 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Vite Dev Server",
+      "type": "shell",
+      "command": "pnpm run dev:frontend",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "____NEVER_MATCH____"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "ready in",
+          "endsPattern": "http://localhost:5173"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Django Dev Server",
+      "type": "shell",
+      "command": "pnpm run dev:backend",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "django",
+        "pattern": {
+          "regexp": "____NEVER_MATCH____"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Performing system checks",
+          "endsPattern": "Starting development server"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "monosans.djlint",
+    "ms-python.black-formatter",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "tamasfe.even-better-toml",
+    "ms-toolsai.jupyter",
+    "ms-toolsai.vscode-jupyter-powertoys"
+  ]
+}
