@@ -8,6 +8,7 @@
     "dbaeumer.vscode-eslint",
     "tamasfe.even-better-toml",
     "ms-toolsai.jupyter",
-    "ms-toolsai.vscode-jupyter-powertoys"
+    "ms-toolsai.vscode-jupyter-powertoys",
+    "percy.vscode-pydata-viewer"
   ]
 }

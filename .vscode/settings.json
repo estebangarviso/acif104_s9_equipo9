@@ -3,11 +3,16 @@
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true
   },
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "standard",
   "python.analysis.diagnosticSeverityOverrides": {
     "reportUnknownMemberType": "none",
     "reportMissingTypeStubs": "none"
   },
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}",
+    "${workspaceFolder}/app",
+    "${workspaceFolder}/src"
+  ],
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
@@ -32,5 +37,6 @@
   "lldb.displayFormat": "auto",
   "lldb.showDisassembly": "auto",
   "lldb.dereferencePointers": true,
-  "lldb.consoleMode": "evaluate"
+  "lldb.consoleMode": "evaluate",
+  "vscode-pydata-viewer.pythonPath": "${workspaceFolder}/venv/bin/python"
 }
