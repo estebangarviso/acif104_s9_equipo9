@@ -20,7 +20,9 @@ class MonitoringView:
         st.header(":material/speed: Panel de Salud del Modelo")
 
         self._render_metrics()
-        st.caption("Métricas calculadas sobre el conjunto de validación (Mes 33).")
+        st.caption(
+            "Métricas calculadas sobre el conjunto de validación (Mes 32 - Septiembre 2015)."
+        )
 
         col_chart1, col_chart2 = st.columns(2)
         with col_chart1:

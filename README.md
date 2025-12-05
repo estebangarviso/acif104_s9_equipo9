@@ -230,7 +230,7 @@ El frontend sigue los principios **SOLID** con una arquitectura modular:
 
 ## Métricas de Rendimiento
 
-**Resultados en conjunto de validación (Mes 33):**
+**Resultados en conjunto de validación (Mes 32 - Septiembre 2015Mes 32):**
 
 * **RMSE:** 1.005
 * **MAE:** 0.835

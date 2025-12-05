@@ -170,7 +170,7 @@ class AboutView:
                 help="Coeficiente de Determinación: El modelo explica el 74.1% de la variabilidad en las ventas.",
             )
 
-        st.caption("Métricas calculadas sobre el conjunto de validación (Mes 33)")
+        st.caption("Métricas calculadas sobre el conjunto de validación (Mes 32 - Septiembre 2015)")
 
         st.divider()
 
