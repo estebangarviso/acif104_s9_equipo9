@@ -11,7 +11,7 @@ from src.inference import load_system, predict_demand
 # Configuración de página
 st.set_page_config(page_title="Predicción de Demanda AI", layout="wide")
 
-st.title("🤖 Sistema de Predicción de Demanda E-commerce")
+st.title("Sistema de Predicción de Demanda E-commerce")
 st.markdown("---")
 
 # Cargar Backend

@@ -1,52 +1,51 @@
-# 📈 Predicción de Demanda en E-commerce - Equipo 9 (ACIF104)
+# Predicción de Demanda en E-commerce - Equipo 9 (ACIF104)
 
 Este repositorio contiene el proyecto final para la asignatura **Aprendizaje de Máquinas (ACIF104)** de la Universidad Andrés Bello. El objetivo es desarrollar un sistema robusto de predicción de demanda para retail utilizando una arquitectura de **Ensemble Learning (Stacking)**, enriquecida con **Clustering Particional** y desplegada mediante una aplicación web interactiva con **Streamlit**.
 
-## 👥 Integrantes del Equipo
+## Integrantes del Equipo
 
 * **Esteban Garviso**
 * **Felipe Ortega**
 
 ---
 
-## 📂 Estructura del Proyecto
+##  Estructura del Proyecto
 
-El repositorio sigue una arquitectura modular que separa claramente la lógica de negocio (Backend) de la interfaz de usuario (Frontend), cumpliendo con los estándares de ingeniería de software.
+El proyecto está organizado en carpetas que separan claramente el backend del frontend. Esto permite ordenar el desarrollo y facilita entender dónde está cada parte del sistema:
 
 ```text
 acif104_s9_equipo9/
 │
-├── README.md               # Documentación principal y manual de ejecución.
-├── Pipfile                 # Definición de dependencias y scripts del entorno.
-├── Pipfile.lock            # Árbol de dependencias exacto (Hash) para reproducibilidad.
-├── pyproject.toml          # Configuración centralizada de Linters (Black, Isort, Mypy).
+├── README.md               # Explica cómo usar y ejecutar el proyecto.
+├── Pipfile / Pipfile.lock  # Dependencias del entorno (reproducibles).
+├── pyproject.toml          # Configuración de herramientas (formato, linting, etc.)
 │
-├── data/                   # Almacenamiento local de datos.
-│   ├── raw/                # Los datos se descargan aquí automáticamente vía KaggleHub.
-│   └── processed/          # Datos transformados listos para entrenamiento.
+├── data/                   
+│   ├── raw/                # Datos descargados directamente desde KaggleHub.
+│   └── processed/          # Datos limpios listos para entrenar modelos.
 │
-├── notebooks/              # Análisis exploratorio y prototipado rápido.
-│   ├── 01_EDA_Clustering.ipynb      # Análisis de outliers, K-Means y patrones temporales.
-│   └── 02_Modelado_Ensemble.ipynb   # Experimentos con Stacking y Deep Learning.
+├── notebooks/              # Exploración inicial y pruebas.
+│   ├── 01_EDA_Clustering.ipynb      # Outliers, K-Means y análisis temporal.
+│   └── 02_Modelado_Ensemble.ipynb   # Pruebas con stacking y modelos más complejos.
 │
-├── src/                    # Backend: Lógica de Negocio y Modelado.
-│   ├── __init__.py
-│   ├── data_processing.py  # Pipeline de limpieza, clustering y feature engineering.
-│   ├── train.py            # Script de entrenamiento, validación y serialización.
-│   └── inference.py        # Motor de inferencia para la aplicación.
+├── src/                    # Código principal del backend.
+│   ├── data_processing.py  # Limpieza, features y clustering.
+│   ├── train.py            # Entrenamiento y validación del modelo.
+│   └── inference.py        # Predicciones (inferencia).
 │
-├── app/                    # Frontend: Interfaz de Usuario.
-│   └── app.py              # Aplicación web interactiva (Streamlit).
+├── app/                    # Frontend en Streamlit.
+│   └── app.py              
 │
-└── models/                 # Artefactos serializados (Modelos entrenados).
-    ├── stacking_model.pkl  # Modelo final de ensamble.
-    ├── features.pkl        # Metadatos de columnas.
-    └── xgb_simple_shap.pkl # Modelo proxy para explicabilidad SHAP.
+└── models/                 # Modelos entrenados que quedan guardados.
+    ├── stacking_model.pkl  
+    ├── features.pkl        
+    └── xgb_simple_shap.pkl 
+
 ````
 
-## 🛠️ Instalación y Configuración
+## Instalación y Configuración
 
-Este proyecto utiliza **Pipenv** para asegurar un entorno determinista y **KaggleHub** para la gestión automática del dataset.
+Se utiliza **Pipenv** para mantener las dependencias controladas, y **KaggleHub** para obtener el dataset sin necesidad de descargarlo manualmente.
 
 ### 1\. Prerrequisitos
 
@@ -74,9 +73,10 @@ pipenv install --ignore-pipfile
 
 *(Para desarrollo, incluye las herramientas de calidad de código: `pipenv install --dev`)*
 
-## 🚀 Manual de Ejecución
+## Manual de Ejecución
 
-Hemos configurado **scripts automatizados** en Pipenv para facilitar el ciclo de vida del desarrollo. No es necesario activar el shell manualmente si usas `pipenv run`.
+El proyecto incluye **scripts automatizados** en Pipenv para simplificar el ciclo de desarrollo. Al ejecutar los comandos con `pipenv run` **no es necesario activar el shell manualmente.**
+
 
 ### A. Entrenamiento del Modelo (Backend)
 
@@ -85,58 +85,64 @@ Este comando descarga automáticamente el dataset desde Kaggle (si no existe), a
 ```bash
 pipenv run train
 ```
+Si ocurre algún problema durante la ejecución, se puede invocar directamente el script:
 
-*Salida esperada:* Archivos `stacking_model.pkl` y `features.pkl` generados en `models/`.
+```bash
+pipenv run python src/train.py
+```
+
+Salida esperada: los archivos stacking_model.pkl y features.pkl generados en la carpeta `models/`.
 
 ### B. Iniciar la Aplicación Web (Frontend)
 
-Despliega la interfaz gráfica para interactuar con el modelo y visualizar la explicabilidad (SHAP).
+Despliega la interfaz gráfica que permite interactuar con el modelo y visualizar la explicabilidad (SHAP).
 
 ```bash
 pipenv run start
 ```
 
-*La aplicación se abrirá automáticamente en tu navegador (<http://localhost:8501>).*
+*Luego de aceptar el mensaje inicial de Streamlit (o simplemente continuar sin ingresar correo), la aplicación se abrirá automáticamente en el navegador, en la dirección: http://localhost:8501*
 
-## 🛡️ Calidad de Código (QA)
+## Calidad de Código (QA)
 
-Para garantizar la mantenibilidad y robustez del código, utilizamos un set estricto de herramientas de análisis estático. Puedes ejecutar la suite completa con un solo comando:
+Para asegurar que el código sea mantenible y robusto, se utiliza un conjunto de herramientas de análisis estático.
+La suite completa puede ejecutarse con:
 
 ```bash
 pipenv run check-all
 ```
 
-O ejecutar herramientas individuales:
+También es posible ejecutar herramientas individuales:
 
 * **Formato:** `pipenv run format` (Aplica **Black** e **Isort**).
 * **Linting:** `pipenv run lint` (Analiza el código con **Pylint**).
 * **Tipado:** `pipenv run type-check` (Valida tipos estáticos con **Mypy**).
 
-## 🧠 Descripción Técnica del Sistema
+## Descripción Técnica del Sistema
 
 ### 1\. Metodología
 
-El proyecto sigue la metodología **CRISP-DM**, abarcando desde el entendimiento del negocio hasta el despliegue del prototipo.
+El proyecto utiliza la metodología CRISP-DM, cubriendo desde el entendimiento del problema hasta el desarrollo del prototipo.
 
 ### 2\. Arquitectura del Modelo (Stacking)
 
-Para maximizar la capacidad predictiva, implementamos un **Ensemble Heterogéneo**:
+Se implementa un **Ensemble Heterogéneo** con el objetivo de mejorar la capacidad predictiva:
 
-* **Nivel Base:**
+* **Modelos Base:**
   * *Random Forest Regressor:* Captura relaciones no lineales y reduce varianza.
   * *XGBoost:* Optimiza el sesgo mediante Gradient Boosting.
 * **Meta-Modelo:**
-  * *Regresión Lineal:* Combina las predicciones base para generar la estimación final.
+  * *Regresión Lineal:* combina las predicciones de los modelos base para producir la estimación final.
 
 ### 3\. Ingeniería de Características Avanzada
 
-* **Clustering Particional (K-Means):** Segmentación de tiendas basada en volumen de ventas histórico para agrupar comportamientos similares.
-* **Lags Temporales:** Variables de rezago (t-1, t-2, t-3) para capturar la tendencia secuencial.
-* **Balanceo de Datos:** Transformación Logarítmica (`log1p`) sobre la variable objetivo para normalizar la distribución de ventas.
+* **Clustering Particional (K-Means):** permite segmentar tiendas según su historial de ventas, agrupando patrones similares.
+* **Lags Temporales:** se incorporan variables de rezago (t-1, t-2, t-3) para capturar la dinámica secuencial.
+* **Balanceo de Datos:** se aplica una transformación logarítmica (log1p) a la variable objetivo para reducir la asimetría de la distribución.
 
 ### 4\. Explicabilidad
 
-Se integra **SHAP (SHapley Additive exPlanations)** en el Frontend para proporcionar transparencia algorítmica, permitiendo al usuario entender qué variables (precio, categoría, mes) influyen positiva o negativamente en cada predicción.
+El Frontend integra **SHAP (SHapley Additive exPlanations)** para analizar el aporte de cada variable (por ejemplo, precio, categoría o mes) en las predicciones del modelo.
 
 ---
 

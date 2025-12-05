@@ -30,7 +30,7 @@ def train_models() -> None:
 
     # Si val está vacío, usar una estrategia de validación alternativa
     if len(val_data) == 0:
-        print("⚠️ Val vacío. Usando últimos 20% de train como validación...")
+        print("Val vacío. Usando últimos 20% de train como validación...")
         train_data, val_data = train_test_split(train_data, test_size=0.2, random_state=42)
 
     X_train = train_data[features]

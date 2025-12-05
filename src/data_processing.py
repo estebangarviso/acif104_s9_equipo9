@@ -11,11 +11,11 @@ def load_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
     Descarga los datasets automáticamente desde KaggleHub y los carga en Pandas.
     Dataset: jaklinmalkoc/predict-future-sales-retail-dataset-en
     """
-    print("⏳ Descargando dataset desde KaggleHub...")
+    print("Descargando dataset desde KaggleHub...")
 
     # Descarga el dataset y obtiene la ruta local de la caché
     path = kagglehub.dataset_download("jaklinmalkoc/predict-future-sales-retail-dataset-en")
-    print(f"✅ Dataset descargado en: {path}")
+    print(f"Dataset descargado en: {path}")
 
     # Cargar archivos usando la ruta obtenida
     sales = pd.read_csv(os.path.join(path, "sales_train.csv"))
