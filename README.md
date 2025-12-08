@@ -272,5 +272,5 @@ El frontend sigue los principios **SOLID** con una arquitectura modular:
 ## Universidad Andrés Bello - 2025
 
 **Asignatura:** ACIF104 - Aprendizaje de Máquinas  
-**Docente:** [Nombre del docente]  
+**Docente:** OMAR IVÁN SALINAS SILVA  
 **Periodo:** Sexto Trimestre 2025

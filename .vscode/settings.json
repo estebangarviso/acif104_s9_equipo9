@@ -37,6 +37,5 @@
   "lldb.displayFormat": "auto",
   "lldb.showDisassembly": "auto",
   "lldb.dereferencePointers": true,
-  "lldb.consoleMode": "evaluate",
-  "vscode-pydata-viewer.pythonPath": "${workspaceFolder}/venv/bin/python"
+  "lldb.consoleMode": "evaluate"
 }
