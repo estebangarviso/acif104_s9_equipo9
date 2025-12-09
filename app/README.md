@@ -4,6 +4,8 @@
 
 La aplicación frontend está construida con **Streamlit** siguiendo los principios **SOLID** y patrones de diseño modernos. La arquitectura modular facilita el mantenimiento, testing y escalabilidad del sistema.
 
+**Arquitectura Desacoplada:** El frontend se comunica exclusivamente con el Backend REST API (FastAPI) mediante HTTP. No hay carga local de modelos.
+
 ## Estructura del Proyecto
 
 ```text
@@ -15,7 +17,7 @@ app/
 ├── services/                       # Lógica de negocio
 │   ├── __init__.py
 │   ├── pricing_service.py          # Gestión de precios dinámicos por categoría
-│   ├── prediction_service.py       # Predicciones ML + valores SHAP
+│   ├── prediction_service.py       # Cliente HTTP para API REST (httpx)
 │   └── trend_analyzer.py           # Análisis de tendencias y deltas
 │
 ├── components/                     # Componentes de visualización
@@ -28,12 +30,12 @@ app/
 │   ├── __init__.py
 │   ├── prediction_view.py          # Vista de análisis predictivo (KPIs, SHAP, gráficos)
 │   ├── monitoring_view.py          # Vista de salud del modelo + Panel de mantenimiento
-│   └── architecture_view.py        # Vista de documentación técnica
+│   └── about_view.py               # Vista de información del proyecto
 │
 └── ui_components/                  # Componentes de interfaz de usuario
     ├── __init__.py
-    ├── sidebar.py                  # Barra lateral con controles y formularios
-    └── header.py                   # Encabezado de la aplicación
+    ├── sidebar.py                  # Barra lateral con formulario de predicción
+    └── header.py                   # Encabezado con branding
 ```
 
 ## Principios SOLID Aplicados
@@ -72,20 +74,42 @@ app/
 
 ## Flujo de Datos
 
-```text
-Usuario Interactúa
-    ↓
-UI Components (Sidebar, Header)
-    ↓
-Services (PricingService, PredictionService, TrendAnalyzer)
-    ↓
-State Manager (SessionStateManager - Singleton)
-    ↓
-Views (PredictionView, MonitoringView)
-    ↓
-Components (ChartBuilder, SHAPRenderer, DataFrameBuilder)
-    ↓
-Visualización Final (Streamlit)
+```mermaid
+graph TB
+    A[👤 Usuario Interactúa] --> B[🎛️ UI Components]
+    B --> C[💾 SessionStateManager<br/>Singleton Pattern]
+    C --> D[⚙️ Services Layer]
+    
+    D --> D1[💰 PricingService]
+    D --> D2[🔮 PredictionService]
+    D --> D3[📊 TrendAnalyzer]
+    
+    D2 -->|HTTP POST| E[🌐 API REST FastAPI<br/>localhost:8000/predict]
+    E -->|JSON Response| D2
+    
+    D --> F[🖼️ Views Layer]
+    
+    F --> F1[📈 PredictionView]
+    F --> F2[🔍 MonitoringView]
+    F --> F3[ℹ️ AboutView]
+    
+    F --> G[🧩 Components Layer]
+    
+    G --> G1[📊 ChartBuilder]
+    G --> G2[🎨 SHAPRenderer]
+    G --> G3[📋 DataFrameBuilder]
+    
+    G --> H[✨ Visualización Final<br/>Streamlit]
+    H --> A
+
+    style A fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style C fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    style D fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    style E fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style F fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style G fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    style H fill:#e1f5ff,stroke:#01579b,stroke-width:2px
 ```
 
 ## Componentes Clave
@@ -100,18 +124,25 @@ Visualización Final (Streamlit)
 - Integración con `category_prices.pkl`
 
 **Métodos principales:**
-
-```python
-update_price_for_category(category_id: int) -> None
-get_current_price_range() -> Tuple[float, float]
-```
-
 #### `prediction_service.py` - **PredictionService**
 
-- Realiza predicciones de demanda usando el modelo Stacking
-- Calcula valores SHAP para explicabilidad
-- Encapsula la lógica del modelo ML
+- Cliente HTTP para comunicación con Backend API REST
+- Realiza predicciones mediante POST a `/predict`
+- Maneja errores de conexión y timeouts
+- **NO carga modelos localmente** (arquitectura desacoplada)
 
+**Métodos principales:**
+
+```python
+predict(input_data: Dict) -> float          # POST a API REST
+check_api_health() -> bool                  # GET a /health
+_handle_api_error(error: Exception) -> None # Manejo de errores HTTP
+```
+
+**Dependencias:**
+- `httpx.Client` para requests HTTP
+- Timeout de 30 segundos por request
+- Validación de disponibilidad de API antes de predicción
 **Métodos principales:**
 
 ```python
@@ -182,19 +213,13 @@ create_monitoring_dataframe(dates, residuals) -> pd.DataFrame
 - Vista principal de análisis predictivo
 - Renderiza KPIs, gráficos SHAP y proyecciones temporales
 - Maneja estados: espera, cálculo, resultados
-
-**Secciones:**
-
-- KPIs (Demanda predicha, Precio unitario, Ventas esperadas, Tendencia)
-- Factores de Influencia (SHAP waterfall chart)
-- Proyección Temporal (gráfico de líneas con lags)
-
 #### `monitoring_view.py` - **MonitoringView**
 
 - Vista de salud y rendimiento del modelo
-- Métricas: RMSE, MAE, R² Score
+- Consume métricas desde API REST (GET `/metrics`)
+- Métricas: RMSE, MAE, R² Score de todos los modelos
 - Gráficos de estabilidad y distribución de errores
-- **Panel de Mantenimiento del Sistema** (NUEVO)
+- **Panel de Mantenimiento del Sistema**
 
 **Panel de Mantenimiento:**
 
@@ -206,23 +231,31 @@ create_monitoring_dataframe(dates, residuals) -> pd.DataFrame
 2. **Reentrenar Modelos:**
    - Botón para ejecutar pipeline de entrenamiento
    - Genera nuevos modelos en `models/`
-   - Limpia caché automáticamente
+   - Requiere reinicio del Backend API para cargar nuevos modelos
+
+#### `about_view.py` - **AboutView**
+
+- Vista de información del proyecto
+- Descripción de arquitectura y tecnologías
+- Integrantes del equipo
+- Documentación de uso
    - Carga nuevos modelos sin reiniciar
 
 #### `architecture_view.py` - **ArchitectureView**
-
-- Vista de documentación técnica
-- Renderiza contenido desde `APP_ARCHITECTURE.md`
-- Descripción de patrones y principios SOLID
-
-### Capa de UI Components (ui_components/)
-
 #### `sidebar.py` - **Sidebar**
 
-- Barra lateral con todos los controles de entrada
+- Barra lateral con formulario de predicción simplificado
 - Selector de categoría con callback dinámico
-- Formulario de predicción (cluster, precio, lags)
-- Gráfico de tendencia de inputs
+- Inputs: shop_cluster, item_price, lag_1, lag_2, lag_3
+- Gráfico de tendencia de lags
+- Botón de predicción
+
+**Características:**
+
+- Actualización automática de precio al cambiar categoría
+- Validación de inputs numéricos
+- Integración con `PricingService`
+- **Sin configuración de API** (modo REST exclusivo)
 - Botón de predicción
 
 **Características:**
@@ -378,8 +411,6 @@ def test_chart_builder():
 7. **Configuraciones centralizadas** - `config.py` como única fuente de verdad
 8. **Estado centralizado** - `SessionStateManager` para estado global
 9. **Imports organizados** - stdlib, third-party, local
-10. **Manejo de errores** - Try/except específicos por tipo de excepción
-
 ## Ventajas de esta Arquitectura
 
 1. **Mantenibilidad**: Código organizado y fácil de entender
@@ -388,6 +419,11 @@ def test_chart_builder():
 4. **Reutilización**: Componentes reutilizables en diferentes contextos
 5. **Separación de responsabilidades**: UI, lógica de negocio y datos separados
 6. **Type Safety**: Uso extensivo de type hints para desarrollo más seguro
+7. **Documentación**: Código autodocumentado con docstrings y type hints
+8. **Performance**: Uso eficiente de caché de Streamlit (`@st.cache_data`, `@st.cache_resource`)
+9. **Arquitectura Desacoplada**: Frontend y Backend independientes
+10. **Microservicios**: Backend API REST puede escalar independientemente
+11. **Facilita Deployment**: Frontend y Backend pueden desplegarse en servidores separados
 7. **Documentación**: Código autodocumentado con docstrings y type hints
 8. **Performance**: Uso eficiente de caché de Streamlit (`@st.cache_data`, `@st.cache_resource`)
 

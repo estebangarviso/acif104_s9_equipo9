@@ -1,6 +1,15 @@
 # Predicción de Demanda en E-commerce - Equipo 9 (ACIF104)
 
-Este repositorio contiene el proyecto final para la asignatura **Aprendizaje de Máquinas (ACIF104)** de la Universidad Andrés Bello. El objetivo es desarrollar un sistema robusto de predicción de demanda para retail utilizando una arquitectura de **Ensemble Learning (Stacking)**, enriquecida con **Clustering Particional (K-Means)** y desplegada mediante una aplicación web interactiva con **Streamlit**.
+Este repositorio contiene el proyecto final para la asignatura **Aprendizaje de Máquinas (ACIF104)** de la Universidad Andrés Bello. El objetivo es desarrollar un sistema robusto de predicción de demanda para retail utilizando:
+
+- 🧠 **Machine Learning Avanzado**: Ensemble Stacking (Random Forest + XGBoost + meta-estimador) + Deep Learning (MLP + LSTM-DNN)
+- 📊 **Ingeniería de Features Avanzada**: 
+  - Clustering K-Means para segmentación de tiendas
+  - **24+ features engineered**: Momentum (deltas, aceleración), Sensibilidad al Precio (elasticidad, ingresos), Desviaciones (z-scores, volatilidad)
+  - **Exactamente 2 ventanas rolling parametrizables** (default: 3 y 6 meses)
+  - Balanceo con SMOTE opcional
+- 🌐 **Arquitectura Desacoplada**: Backend REST API (FastAPI) + Frontend (Streamlit) con comunicación HTTP
+- 🔄 **MLOps Best Practices**: Validación temporal, sincronización automática de dependencias, versionado de modelos
 
 ## Integrantes del Equipo
 
@@ -9,31 +18,45 @@ Este repositorio contiene el proyecto final para la asignatura **Aprendizaje de 
 
 ## Estructura del Proyecto
 
-El proyecto sigue una arquitectura modular que desacopla la lógica de negocio (Backend) de la capa de presentación (Frontend), facilitando la mantenibilidad y escalabilidad:
+El proyecto sigue una arquitectura modular que desacopla la lógica de negocio (Backend REST API) de la capa de presentación (Frontend Streamlit), facilitando la mantenibilidad y escalabilidad:
 
 ```text
 acif104_s9_equipo9/
 │
-├── README.md               # Documentación y manual de ejecución
-├── Pipfile                 # Definición de dependencias y scripts
+├── README.md               # Documentación completa del proyecto
+├── Pipfile                 # Gestión de dependencias con Pipenv
 ├── Pipfile.lock            # Árbol de dependencias exacto (reproducibilidad)
-├── pyproject.toml          # Configuración centralizada de QA (Black, Isort, Mypy)
+├── requirements.txt        # Dependencias (generado automáticamente)
+├── requirements-dev.txt    # Dependencias de desarrollo (generado automáticamente)
+├── Makefile                # Comandos de automatización (install, train, api, start)
+├── pyproject.toml          # Configuración de QA (Black, Isort, Mypy)
+│
+├── .githooks/              # Git hooks personalizados
+│   └── pre-commit          # Auto-sincronización de requirements.txt al commitear
 │
 ├── data/                   # Datasets con sistema de respaldo automático
 │   ├── .gitkeep            # Los datos se descargan automáticamente vía KaggleHub
 │   └── [*.csv]             # Respaldo local: sales_train, items, shops, item_categories
 │
+├── models/                 # Modelos entrenados y metadatos
+│   ├── stacking_model.pkl  # Ensemble Stacking (Random Forest + XGBoost)
+│   ├── mlp_model.keras     # Red Neuronal MLP (3 capas densas)
+│   ├── lstm_model.keras    # Red Neuronal LSTM-DNN simplificada
+│   ├── scaler.pkl          # StandardScaler para normalización
+│   └── metrics.json        # Métricas comparativas (RMSE, MAE, R²)
+│
 ├── notebooks/              # Prototipado y análisis exploratorio
 │   ├── 01_EDA_Clustering.ipynb      # K-Means, Outliers y patrones temporales
-│   └── 02_Modelado_Ensemble.ipynb   # Experimentos con Stacking y comparativas
+│   └── 02_Modelado_Ensemble.ipynb   # Experimentos con Stacking y Deep Learning
 │
 ├── src/                    # Backend: Lógica de Negocio y Modelado
 │   ├── __init__.py         # Inicialización del paquete
-│   ├── data_processing.py  # Pipeline ETL: Limpieza, Clustering, Features, Respaldo
-│   ├── train.py            # Script de entrenamiento, validación y serialización
-│   └── inference.py        # Motor de inferencia con sistema de respaldo
+│   ├── data_processing.py  # Pipeline ETL: SMOTE, Rolling Windows, TimeSeriesSplit
+│   ├── train.py            # Entrenamiento de 5 modelos (RF, XGB, MLP, LSTM, Stacking)
+│   ├── inference.py        # Motor de inferencia con sistema de respaldo
+│   └── api.py              # FastAPI REST API (5 endpoints con Pydantic)
 │
-├── app/                    # Frontend: Interfaz de Usuario con Streamlit (Arquitectura SOLID)
+├── app/                    # Frontend: Interfaz de Usuario con Streamlit
 │   ├── README.md           # Documentación de arquitectura modular
 │   ├── app.py              # Punto de entrada principal
 │   ├── config.py           # Configuraciones centralizadas
@@ -41,13 +64,23 @@ acif104_s9_equipo9/
 │   │
 │   ├── services/           # Lógica de negocio
 │   │   ├── pricing_service.py       # Precios dinámicos por categoría
-│   │   ├── prediction_service.py    # Predicciones ML + SHAP
+│   │   ├── prediction_service.py    # Cliente HTTP para API REST
 │   │   └── trend_analyzer.py        # Análisis de tendencias
 │   │
 │   ├── components/         # Componentes de visualización
 │   │   ├── chart_builder.py         # Gráficos Plotly reutilizables
 │   │   ├── shap_renderer.py         # Renderizado SHAP (dark/light theme)
 │   │   └── dataframe_builder.py     # Construcción de DataFrames
+│   │
+│   ├── ui_components/      # Componentes UI
+│   │   ├── header.py       # Encabezado con branding
+│   │   └── sidebar.py      # Formulario de predicción
+│   │
+│   └── views/              # Vistas de navegación
+│       ├── prediction_view.py       # Vista principal de predicción
+│       ├── monitoring_view.py       # Dashboard de monitoreo
+│       └── about_view.py            # Información del proyecto
+```
 │   │
 │   ├── views/              # Vistas principales
 │   │   ├── prediction_view.py       # Análisis predictivo con KPIs y SHAP
@@ -65,209 +98,92 @@ acif104_s9_equipo9/
     └── category_prices.pkl # Precios promedio por categoría
 ```
 
-## Instalación y Configuración
-
-Este proyecto utiliza **Pipenv** para asegurar un entorno determinista y **KaggleHub** para la gestión automática del dataset con sistema de respaldo local.
-
-### 1. Prerrequisitos
-
-* **Python:** Versión 3.10 (Requerido)
-* **Gestor de Paquetes:** `pipenv` instalado globalmente
-
-  ```bash
-  pip install pipenv
-  ```
-
-### 2. Clonar el Repositorio
+## Inicio Rápido
 
 ```bash
+# 1. Clonar repositorio
 git clone https://github.com/estebangarviso/acif104_s9_equipo9.git
 cd acif104_s9_equipo9
-```
 
-### 3. Instalar Dependencias
-
-Para replicar el entorno exacto definido en el `Pipfile.lock`:
-
-```bash
+# 2. Instalar dependencias
 pipenv install --ignore-pipfile
+
+# 3. Iniciar Backend (Terminal 1)
+pipenv run api
+
+# 4. Iniciar Frontend (Terminal 2)
+pipenv run start
 ```
 
-*(Para desarrollo y herramientas de QA: `pipenv install --dev`)*
-
-## Manual de Comandos (Scripts)
-
-Hemos configurado scripts automatizados en Pipenv para agilizar el ciclo de vida del desarrollo. Ejecuta estos comandos en la terminal:
-
-### Ejecución Principal
-
-| Comando                | Descripción                                                                                                                                                                                                              |
-| :--------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`pipenv run start`** | **Inicia la Aplicación Web (Frontend + Backend).** Despliega la interfaz en Streamlit para interactuar con el modelo y ver la explicabilidad SHAP. *URL por defecto: [http://localhost:8501](http://localhost:8501)*     |
-| **`pipenv run train`** | **Ejecuta el Pipeline de Entrenamiento.** 1. Descarga/carga datos (KaggleHub + respaldo local). 2. Aplica Clustering K-Means y Feature Engineering. 3. Entrena el Stacking Ensemble. 4. Guarda los modelos en `/models`. |
-
-### Calidad de Código (QA)
-
-| Comando                    | Descripción                                                                   |
-| :------------------------- | :---------------------------------------------------------------------------- |
-| **`pipenv run check-all`** | **Suite Completa.** Ejecuta formato, linting y chequeo de tipos en secuencia. |
-| `pipenv run format`        | Aplica formato automático con **Black** e **Isort**.                          |
-| `pipenv run lint`          | Analiza el código estáticamente con **Pylint**.                               |
-| `pipenv run type-check`    | Valida tipos estáticos con **Mypy**.                                          |
+📖 **Documentación completa:** Ver [docs/INSTALLATION.md](docs/INSTALLATION.md)
 
 ## Características Principales
 
-### Sistema de Respaldo de Datos
+- **5 Modelos ML/DL:** Random Forest, XGBoost, MLP, LSTM-DNN, Stacking Ensemble
+- **Ingeniería de Features Avanzada (24+ variables):**
+  - **Momentum:** Deltas (delta_1_2, evolution_3m), promedios y dirección de tendencia
+  - **Sensibilidad al Precio:** Cambios porcentuales, elasticidad precio-demanda, ingreso potencial
+  - **Desviaciones:** Z-scores, diferencias vs promedio, coeficientes de volatilidad
+  - **Rolling Windows:** 2 ventanas temporales parametrizables (mean + std)
+  - **Clustering K-Means:** Segmentación automática de tiendas
+  - **Balanceo SMOTE:** Opcional para clases desbalanceadas
+- **API REST con FastAPI:** 5 endpoints documentados con Swagger UI
+- **Frontend Streamlit:** Interfaz interactiva con explicabilidad SHAP
+- **Validación Temporal:** TimeSeriesSplit para prevenir data leakage
+- **Sistema de Respaldo:** Gestión automática de datasets con KaggleHub
 
-Implementación robusta de gestión de datasets con múltiples capas de seguridad:
-
-1. **Prioridad de carga:**
-   * ✅ Si `data/` tiene todos los archivos → los usa directamente (más rápido)
-   * ⏳ Si no → descarga desde KaggleHub
-   * 💾 Copia automáticamente a `data/` como respaldo
-   * ⚠️ Si KaggleHub falla → usa `data/` como último recurso
-
-2. **Validaciones automáticas:**
-   * Verifica existencia de archivos requeridos
-   * Valida que no estén vacíos (tamaño > 0)
-   * Comprueba que los DataFrames cargados contengan datos
-
-3. **Archivos gestionados:**
-   * `sales_train.csv` - Registros históricos de ventas
-   * `items.csv` - Catálogo de productos
-   * `shops.csv` - Información de tiendas
-   * `item_categories.csv` - Categorías de productos
-
-### Panel de Mantenimiento (UI)
-
-La aplicación incluye una sección de mantenimiento en la pestaña **Monitoreo** con funcionalidades avanzadas:
-
-#### **Regenerar Datasets**
-
-* Botón para forzar descarga fresca desde KaggleHub
-* Actualiza automáticamente la carpeta `data/`
-* Útil si los archivos están corruptos o desactualizados
-* Mensajes de estado persistentes (éxito/error)
-
-#### **Reentrenar Modelos**
-
-* Botón para ejecutar el pipeline completo de entrenamiento desde la UI
-* Genera nuevos modelos: `stacking_model.pkl`, `xgb_simple_shap.pkl`, `category_prices.pkl`
-* Limpia automáticamente el caché de Streamlit
-* Carga los nuevos modelos sin necesidad de reiniciar la aplicación
-* Incluye spinner con feedback durante el proceso (puede tomar varios minutos)
-
-### Interfaz de Usuario
-
-* **Predicción de Demanda**: Formulario interactivo con KPIs en tiempo real
-* **Explicabilidad SHAP**: Visualización de factores de influencia con soporte para tema dark/light
-* **Precios Dinámicos**: Slider que se ajusta automáticamente según la categoría (±200% del promedio)
-* **Gráficos Interactivos**: Proyecciones temporales con Plotly
-* **Panel de Salud**: Métricas del modelo (RMSE, MAE, R²) y gráficos de estabilidad
+📖 **Detalles técnicos:** Ver [docs/TECHNICAL_DETAILS.md](docs/TECHNICAL_DETAILS.md)  
+📖 **Documentación API:** Ver [docs/API.md](docs/API.md)
 
 ## Capturas de Pantalla
 
 ### Vista de Predicción
-
-La interfaz principal permite realizar predicciones interactivas con visualización de factores de influencia SHAP:
-
 ![Vista de Predicción](docs/screenshots/prediction-view.png)
 
 ### Panel de Monitoreo
-
-Métricas de rendimiento del modelo y herramientas de mantenimiento del sistema:
-
 ![Panel de Monitoreo](docs/screenshots/monitoring-view.png)
-
-## Descripción Técnica del Sistema
-
-### 1. Metodología
-
-El proyecto se rige por la metodología **CRISP-DM**, abarcando desde la comprensión del negocio y datos hasta el despliegue del prototipo funcional.
-
-### 2. Arquitectura del Modelo (Stacking)
-
-Implementamos una estrategia de **Ensemble Learning Heterogéneo** para reducir la varianza y el sesgo:
-
-* **Nivel Base (Weak Learners):**
-  * *Random Forest:* Captura no-linealidades robustas mediante agregación de árboles (n_estimators=50, max_depth=10)
-  * *XGBoost:* Optimiza el error residual mediante Gradient Boosting (n_estimators=100, learning_rate=0.1)
-* **Meta-Modelo (Nivel 1):**
-  * *Regresión Lineal:* Pondera las predicciones base para generar la estimación final
-
-### 3. Aprendizaje No Supervisado
-
-**Clustering Particional (K-Means):**
-
-* Segmentación automática de tiendas según volumen de venta histórico
-* k=2 clusters determinados por el método del codo
-* Feature adicional: `shop_cluster` (0: Bajo Volumen, 1: Volumen Medio, 2: Alto Volumen)
-* Implementado en `src/data_processing.py::generate_clusters()`
-
-### 4. Ingeniería de Características
-
-* **Variables Temporales (Lags):** Rezagos (t-1, t-2, t-3) para capturar la inercia de la demanda
-* **Balanceo de Target:** Transformación `log1p` en la variable objetivo para normalizar la distribución de ventas
-* **Clipping de Outliers:** Limitación de valores extremos en ventas (0-20) y precios (0-300,000)
-* **Agregación Temporal:** Ventas mensuales con precio promedio por mes
-
-### 5. Explicabilidad (XAI)
-
-El sistema integra **SHAP (SHapley Additive exPlanations)** en el frontend, proporcionando transparencia algorítmica al desglosar el impacto marginal de cada variable en la predicción final.
-
-* **Modelo Proxy:** XGBoost simplificado para compatibilidad con TreeExplainer
-* **Visualización Dinámica:** Waterfall charts con soporte para temas dark/light
-* **Interpretabilidad:** Muestra cómo cada feature contribuye a la predicción
-
-### 6. Arquitectura de Software
-
-El frontend sigue los principios **SOLID** con una arquitectura modular:
-
-* **18 archivos Python** con una clase por archivo
-* **Separación de responsabilidades:** Services (lógica de negocio), Components (visualización), Views (vistas), UI Components (interfaz)
-* **Patrones de diseño:** Singleton (SessionStateManager), Builder (ChartBuilder), Service Layer, Dependency Injection
-* Para más detalles, ver [Documentación de Arquitectura](app/README.md)
-
-## Métricas de Rendimiento
-
-**Resultados en conjunto de validación (Mes 32 - Septiembre 2015Mes 32):**
-
-* **RMSE:** 1.005
-* **MAE:** 0.835
-* **R² Score:** 0.741
-
-*Estos valores representan el rendimiento del Stacking Ensemble en escala logarítmica transformada.*
-
-## Documentación Adicional
-
-* [**Arquitectura de Aplicación (SOLID)**](app/README.md)
-* [**Documentación de Arquitectura Resumida**](APP_ARCHITECTURE.md)
 
 ## Tecnologías Utilizadas
 
-**Machine Learning:**
+**Machine Learning:** scikit-learn, XGBoost, TensorFlow, imbalanced-learn, SHAP  
+**Backend:** FastAPI, Pydantic, uvicorn  
+**Frontend:** Streamlit, Plotly, httpx  
+**Data:** pandas, numpy, KaggleHub  
+**QA:** Black, Pylint, Mypy, Isort, pytest
 
-* scikit-learn 1.5.1 (Random Forest, Stacking)
-* XGBoost 2.1.0 (Gradient Boosting)
-* SHAP 0.46.0 (Explicabilidad)
+📖 **Ver versiones completas:** [docs/INSTALLATION.md](docs/INSTALLATION.md)
 
-**Frontend:**
+## Métricas de los Modelos
 
-* Streamlit 1.52.0 (Aplicación web)
-* Plotly 5.23.0 (Visualizaciones interactivas)
+Comparativa de rendimiento (dataset de validación con TimeSeriesSplit):
 
-**Data Processing:**
+| Modelo            | RMSE  | MAE   | R²        | Tipo              | Estado             |
+| :---------------- | :---- | :---- | :-------- | :---------------- | :----------------- |
+| **Random Forest** | 0.028 | 0.017 | **0.999** | Tree-based        | ✅ Óptimo           |
+| XGBoost           | 0.120 | 0.052 | 0.984     | Gradient Boosting | ✅ Excelente        |
+| Stacking Ensemble | 0.821 | 0.807 | 0.276     | Ensemble          | ⚠️ Bajo rendimiento |
+| MLP               | 0.791 | 0.591 | 0.327     | Neural Network    | ⚠️ Requiere ajuste  |
+| LSTM-DNN          | 6.348 | 6.271 | -42.330   | Neural Network    | ❌ Fallo crítico    |
 
-* pandas 2.2.2
-* numpy 1.26.4
-* KaggleHub 0.3.13 (Gestión de datasets)
+**Conclusiones:**
+- **Random Forest es el modelo ganador** con R²=0.999, superando incluso al Stacking Ensemble
+- Los modelos tree-based (RF, XGBoost) superan significativamente a Deep Learning en datos tabulares pequeños
+- **El Stacking Ensemble tiene rendimiento inferior** (R²=0.276) a sus estimadores base, posiblemente por:
+  - Overfitting del meta-estimador en validación temporal
+  - Desbalance en los pesos de combinación
+  - Incompatibilidad entre predicciones de estimadores heterogéneos
+- **LSTM-DNN falló completamente** (R²=-42.33) indicando divergencia en entrenamiento
+- Deep Learning requiere datasets más grandes para convergencia óptima
+- TimeSeriesSplit previene overfitting temporal y data leakage
 
-**QA/Development:**
+**Recomendación:** Usar **Random Forest** como modelo de producción por su estabilidad y rendimiento superior
 
-* Black 25.11.0 (Formateo)
-* Pylint 3.3.9 (Linting)
-* Mypy 1.19.0 (Type checking)
-* Isort 6.1.0 (Ordenamiento de imports)
+## Documentación Adicional
+
+- 📘 [Guía de Instalación](docs/INSTALLATION.md) - Configuración completa del entorno
+- 🔧 [Detalles Técnicos](docs/TECHNICAL_DETAILS.md) - Metodología, arquitectura y features
+- 🌐 [Documentación API](docs/API.md) - Endpoints y ejemplos de uso
+- 🏗️ [Arquitectura Frontend](app/README.md) - Patrones SOLID y estructura modular
 
 ## Universidad Andrés Bello - 2025
 
