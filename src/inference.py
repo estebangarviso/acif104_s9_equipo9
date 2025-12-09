@@ -4,7 +4,7 @@ import numpy as np
 import os
 from typing import Tuple, Dict, Any, Optional
 
-# --- Configuración de Directorios ---
+# Configuración de Directorios
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 DATA_DIR = os.path.join(BASE_DIR, "data")
