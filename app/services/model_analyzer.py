@@ -293,61 +293,72 @@ class ModelAnalyzer:
 
         return fig
 
-    def plot_shap_summary_scatter(self, model_name: str = "randomforest", top_n: int = 15) -> go.Figure:
+    def plot_shap_summary_scatter(
+        self, model_name: str = "randomforest", top_n: int = 15
+    ) -> go.Figure:
         """
         Create SHAP summary plot (scatter) showing feature impacts and values.
-        
+
         This recreates the classic SHAP summary plot with:
         - Y-axis: Features ordered by importance
         - X-axis: SHAP value (impact on prediction)
         - Color: Feature value (red=high, blue=low)
-        
+
         Args:
             model_name: Name of the model to analyze
             top_n: Number of top features to show
-            
+
         Returns:
             Plotly Figure object
         """
         if model_name not in self.shap_summary or self.features is None:
             return go.Figure()
-        
+
         # Get top features by importance
-        top_features = self.shap_summary[model_name].head(top_n)['feature'].tolist()
-        
+        top_features = self.shap_summary[model_name].head(top_n)["feature"].tolist()
+
         # Get feature columns from features dataset (excluding metadata)
-        feature_cols = [col for col in self.features.columns 
-                       if col not in ['shop_cluster', 'item_category_id', 'date_block_num', 'target_log']]
-        
+        feature_cols = [
+            col
+            for col in self.features.columns
+            if col not in ["shop_cluster", "item_category_id", "date_block_num", "target_log"]
+        ]
+
         # Filter to only top features that exist in dataset
         available_features = [f for f in top_features if f in feature_cols]
-        
+
         if not available_features:
             return go.Figure()
-        
+
         fig = go.Figure()
-        
+
         # Create scatter traces for each feature
         for i, feature in enumerate(reversed(available_features)):  # Reverse for correct ordering
             feature_values = self.features[feature].values
-            
+
             # Normalize feature values to 0-1 for color mapping
             if feature_values.std() > 0:
-                normalized_values = (feature_values - feature_values.min()) / (feature_values.max() - feature_values.min())
+                normalized_values = (feature_values - feature_values.min()) / (
+                    feature_values.max() - feature_values.min()
+                )
             else:
                 normalized_values = np.zeros_like(feature_values)
-            
+
             # Get SHAP values from summary (we'll use mean as proxy since we don't have individual values)
-            shap_row = self.shap_summary[model_name][self.shap_summary[model_name]['feature'] == feature]
+            shap_row = self.shap_summary[model_name][
+                self.shap_summary[model_name]["feature"] == feature
+            ]
             if shap_row.empty:
                 continue
-                
-            mean_shap = shap_row['mean_shap_value'].values[0]
-            std_shap = shap_row['std_shap_value'].values[0]
-            
+
+            mean_shap = shap_row["mean_shap_value"].values[0]
+            std_shap = shap_row["std_shap_value"].values[0]
+
             # Create jittered y-positions for better visualization
-            y_positions = np.full(len(feature_values), i) + np.random.normal(0, 0.1, len(feature_values))
-            
+            y_positions = np.full(len(feature_values), i) + np.random.normal(
+                0, 0.1, len(feature_values)
+            )
+
             # Sample points if too many (for performance)
             max_points = 500
             if len(feature_values) > max_points:
@@ -358,25 +369,27 @@ class ModelAnalyzer:
                 shap_values_sample = np.random.normal(mean_shap, std_shap, max_points)
             else:
                 shap_values_sample = np.random.normal(mean_shap, std_shap, len(feature_values))
-            
+
             # Create color scale from blue (low) to red (high)
-            colors = [f'rgba({int(255*v)}, {int(100*(1-v))}, {int(255*(1-v))}, 0.6)' 
-                     for v in normalized_values]
-            
-            fig.add_trace(go.Scatter(
-                x=shap_values_sample,
-                y=y_positions,
-                mode='markers',
-                marker=dict(
-                    size=5,
-                    color=colors,
-                    line=dict(width=0.5, color='rgba(0,0,0,0.2)')
-                ),
-                showlegend=False,
-                hovertemplate=f'<b>{feature}</b><br>SHAP: %{{x:.4f}}<extra></extra>',
-                name=feature
-            ))
-        
+            colors = [
+                f"rgba({int(255*v)}, {int(100*(1-v))}, {int(255*(1-v))}, 0.6)"
+                for v in normalized_values
+            ]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=shap_values_sample,
+                    y=y_positions,
+                    mode="markers",
+                    marker=dict(
+                        size=5, color=colors, line=dict(width=0.5, color="rgba(0,0,0,0.2)")
+                    ),
+                    showlegend=False,
+                    hovertemplate=f"<b>{feature}</b><br>SHAP: %{{x:.4f}}<extra></extra>",
+                    name=feature,
+                )
+            )
+
         # Update layout
         fig.update_layout(
             title=f"SHAP Summary Plot - {model_name.title()}",
@@ -384,31 +397,33 @@ class ModelAnalyzer:
             yaxis=dict(
                 ticktext=list(reversed(available_features)),
                 tickvals=list(range(len(available_features))),
-                title=""
+                title="",
             ),
             height=max(400, len(available_features) * 30),
             showlegend=False,
-            hovermode='closest',
-            plot_bgcolor='white',
+            hovermode="closest",
+            plot_bgcolor="white",
             xaxis=dict(
                 showgrid=True,
-                gridcolor='lightgray',
+                gridcolor="lightgray",
                 zeroline=True,
                 zerolinewidth=2,
-                zerolinecolor='black'
-            )
+                zerolinecolor="black",
+            ),
         )
-        
+
         # Add colorbar annotation
         fig.add_annotation(
             text="<b>Valor Feature</b><br>Alto ← → Bajo",
-            xref="paper", yref="paper",
-            x=1.15, y=0.5,
+            xref="paper",
+            yref="paper",
+            x=1.15,
+            y=0.5,
             showarrow=False,
             font=dict(size=10),
-            textangle=-90
+            textangle=-90,
         )
-        
+
         return fig
 
     def get_shap_interpretation(
