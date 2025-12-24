@@ -1,0 +1,15 @@
+{
+  "architecture": [
+    128,
+    64,
+    32,
+    1
+  ],
+  "activation": "relu",
+  "dropout_rate": 0.3,
+  "learning_rate": 0.001,
+  "batch_size": 128,
+  "epochs": 100,
+  "optimizer": "Adam",
+  "loss": "mse"
+}

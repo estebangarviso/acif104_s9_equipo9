@@ -1,0 +1,11 @@
+{
+  "architecture": "LSTM(64) -> Dense(32) -> Dense(1)",
+  "lstm_units": 64,
+  "dense_units": 32,
+  "dropout_rate": 0.2,
+  "learning_rate": 0.001,
+  "batch_size": 128,
+  "epochs": 150,
+  "optimizer": "Adam",
+  "loss": "mse"
+}
